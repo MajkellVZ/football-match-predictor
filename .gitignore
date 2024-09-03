@@ -1,0 +1,13 @@
+.idea
+.env
+data
+models
+.neptune
+.poetry/
+http_requests
+google_secret
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/

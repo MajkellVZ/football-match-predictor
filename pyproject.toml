@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "football-match-predictor"
+version = "0.1.0"
+description = ""
+authors = ["Majkell Veizaj <majkellveizaj@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+scikit-learn = "^1.5.1"
+numpy = "^2.1.0"
+pandas = "^2.2.2"
+joblib = "^1.4.2"
+neptune = "^1.11.1"
+google-cloud-storage = "^2.18.2"
+flask = "^3.0.3"
+python-dotenv = "^1.0.1"
+google-cloud-aiplatform = "^1.63.0"
+gunicorn = "^23.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
