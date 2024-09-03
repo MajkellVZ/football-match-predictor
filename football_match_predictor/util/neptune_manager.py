@@ -1,11 +1,8 @@
 import neptune
 
-from dotenv import load_dotenv
 import os
 
-load_dotenv()
-
-api_key = os.getenv('API_KEY')
+api_key = os.getenv('NEPTUNE_API_KEY')
 project_name = "majkellvz/football-match-predictor"
 
 

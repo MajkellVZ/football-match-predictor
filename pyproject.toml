@@ -14,7 +14,6 @@ joblib = "^1.4.2"
 neptune = "^1.11.1"
 google-cloud-storage = "^2.18.2"
 flask = "^3.0.3"
-python-dotenv = "^1.0.1"
 google-cloud-aiplatform = "^1.63.0"
 gunicorn = "^23.0.0"
 

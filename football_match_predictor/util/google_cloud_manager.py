@@ -15,12 +15,19 @@ bucket_name = os.getenv('GOOGLE_CLOUD_BUCKET')
 project_id = os.getenv('GOOGLE_CLOUD_PROJECT')
 
 
-def upload_to_gcs(source_file_path: str, destination_blob_name: str):
-	client = storage.Client(project=project_id)
-	bucket = client.bucket(bucket_name)
-	blob = bucket.blob(destination_blob_name)
-	blob.upload_from_filename(source_file_path)
-	logger.info(f"File {source_file_path} uploaded to {destination_blob_name}.")
+def upload_to_gcs(data: pd.DataFrame | pd.Series, source_file_path: str, destination_blob_name: str):
+	if environment != 'production':
+		with open(source_file_path, 'wb') as f:
+			pickle.dump(data, f)
+	else:
+		pickle_buffer = io.BytesIO()
+		data.to_pickle(pickle_buffer)
+		pickle_buffer.seek(0)
+		client = storage.Client(project=project_id)
+		bucket = client.bucket(bucket_name)
+		blob = bucket.blob(destination_blob_name)
+		blob.upload_from_file(pickle_buffer, content_type='application/octet-stream')
+	logger.info(f"File uploaded to {destination_blob_name}.")
 
 
 def load_data_from_gcs(blob_name):
@@ -33,7 +40,11 @@ def load_data_from_gcs(blob_name):
 
 		data = blob.download_as_bytes()
 		with io.BytesIO(data) as file_obj:
-			data = pickle.load(file_obj)
+			try:
+				data = pickle.load(file_obj)
+				print("Data loaded successfully")
+			except Exception as e:
+				print(f"An error occurred: {e}")
 
 	logger.info(f"Loaded {blob_name}.")
 

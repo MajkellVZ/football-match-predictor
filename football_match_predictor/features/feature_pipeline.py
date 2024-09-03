@@ -22,14 +22,8 @@ def main(start_year: int, end_year: int):
 	data_hash = generate_hash(start_year, end_year)
 	versioned_dir = f'data/{data_hash}/'
 
-	if environment != 'production':
-		with open(f'{versioned_dir}features.pickle', 'wb') as f:
-			pickle.dump(features, f)
-		with open(f'{versioned_dir}target.pickle', 'wb') as f:
-			pickle.dump(target, f)
-
-	upload_to_gcs(f'{versioned_dir}features.pickle', f'{versioned_dir}features.pickle')
-	upload_to_gcs(f'{versioned_dir}target.pickle', f'{versioned_dir}target.pickle')
+	upload_to_gcs(features, f'{versioned_dir}features.pickle', f'{versioned_dir}features.pickle')
+	upload_to_gcs(target, f'{versioned_dir}target.pickle', f'{versioned_dir}target.pickle')
 
 
 if __name__ == "__main__":

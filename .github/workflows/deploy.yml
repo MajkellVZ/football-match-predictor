@@ -1,6 +1,8 @@
 name: CD Pipeline
 
 on:
+  schedule:
+    - cron: '0 0 * * 2'
   push:
     branches:
       - main
@@ -23,41 +25,125 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ vars.GOOGLE_CLOUD_PROJECT }}
+
+      - name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: ${{ secrets.GOOGLE_CLOUD_KEY_JSON }}
+
       - name: Build Feature Pipeline Docker image
         run: |
           docker build -t feature_pipeline:latest -f feature_pipeline.Dockerfile .
-
-      - name: Set up Google Cloud credentials
-        run: |
-          echo "${{ secrets.GOOGLE_CLOUD_KEY_JSON }}" > $HOME/gcloud-key.json
-          export GOOGLE_APPLICATION_CREDENTIALS="$HOME/gcloud-key.json"
-
-      - name: Run Feature Pipeline
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: $HOME/gcloud-key.json
-          GOOGLE_CLOUD_PROJECT: ${{ env.GOOGLE_CLOUD_PROJECT }}
-          GOOGLE_CLOUD_BUCKET: ${{ env.GOOGLE_CLOUD_BUCKET }}
-        run: |
-          docker run --rm \
-            -e GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS \
-            -e GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT \
-            -e GOOGLE_CLOUD_BUCKET=$GOOGLE_CLOUD_BUCKET \
-            feature_pipeline:latest
 
       - name: Build Experiment Pipeline Docker image
         run: |
           docker build -t experiment_pipeline:latest -f experiment_pipeline.Dockerfile .
 
-      - name: Run Experiment Pipeline
+      - name: Run Feature Pipeline
         env:
-          GOOGLE_APPLICATION_CREDENTIALS: $HOME/gcloud-key.json
-          GOOGLE_CLOUD_PROJECT: ${{ env.GOOGLE_CLOUD_PROJECT }}
-          GOOGLE_CLOUD_BUCKET: ${{ env.GOOGLE_CLOUD_BUCKET }}
+          GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT }}
+          GOOGLE_CLOUD_BUCKET: ${{ vars.GOOGLE_CLOUD_BUCKET }}
         run: |
+          echo '${{ secrets.GOOGLE_CLOUD_KEY_JSON }}' > /tmp/credentials.json
           docker run --rm \
-            -e GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS \
             -e GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT \
             -e GOOGLE_CLOUD_BUCKET=$GOOGLE_CLOUD_BUCKET \
-            experiment_pipeline:latest
-          
-        
+            -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/credentials.json \
+            -v /tmp/credentials.json:/tmp/credentials.json \
+            feature_pipeline:latest
+
+      - name: Push Experiment to Artifact Repository
+        env:
+          GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT }}
+        run: |
+          echo '${{ secrets.GOOGLE_CLOUD_KEY_JSON }}' > /tmp/credentials.json
+          gcloud auth activate-service-account --key-file=/tmp/credentials.json
+          gcloud config set project $GOOGLE_CLOUD_PROJECT
+          gcloud auth configure-docker europe-west4-docker.pkg.dev
+
+          docker build -t europe-west4-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/experiment-repo/experiment_pipeline:latest \
+          -f ./experiment_pipeline.Dockerfile ./
+          docker push europe-west4-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/experiment-repo/experiment_pipeline:latest
+
+      - name: Push Model Training to Artifact Repository
+        env:
+          GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT }}
+        run: |
+          echo '${{ secrets.GOOGLE_CLOUD_KEY_JSON }}' > /tmp/credentials.json
+          gcloud auth activate-service-account --key-file=/tmp/credentials.json
+          gcloud config set project $GOOGLE_CLOUD_PROJECT
+          gcloud auth configure-docker europe-west4-docker.pkg.dev
+
+          docker build -t europe-west4-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/model-repo/training_pipeline:latest \
+          -f ./training_pipeline.Dockerfile ./
+          docker push europe-west4-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/model-repo/training_pipeline:latest
+
+      - name: Cleanup Credentials
+        if: always()
+        run: rm -f /tmp/credentials.json
+
+  run-experiment-job:
+    needs: build-and-deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ vars.GOOGLE_CLOUD_PROJECT }}
+
+      - name: Build GCP Experiment Run Docker image
+        run: |
+          docker build -t gcp_experiment_run:latest -f gcp_experiment_run.Dockerfile .
+
+      - name: Run Experiment Job
+        env:
+          GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT }}
+          GOOGLE_CLOUD_BUCKET: ${{ vars.GOOGLE_CLOUD_BUCKET }}
+          NEPTUNE_API_KEY: ${{ secrets.NEPTUNE_API_KEY }}
+        run: |
+          echo '${{ secrets.GOOGLE_CLOUD_KEY_JSON }}' > /tmp/credentials.json
+          docker run --rm \
+            -e GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT \
+            -e GOOGLE_CLOUD_BUCKET=$GOOGLE_CLOUD_BUCKET \
+            -e NEPTUNE_API_KEY=$NEPTUNE_API_KEY \
+            -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/credentials.json \
+            -v /tmp/credentials.json:/tmp/credentials.json \
+            gcp_experiment_run:latest
+
+  run-model-training-job:
+    needs: run-experiment-job
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ vars.GOOGLE_CLOUD_PROJECT }}
+
+      - name: Build GCP Model Training Docker image
+        run: |
+          docker build -t gcp_model_train:latest -f gcp_model_train.Dockerfile .
+
+      - name: Run Model Train Pipeline
+        env:
+          GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT }}
+          GOOGLE_CLOUD_BUCKET: ${{ vars.GOOGLE_CLOUD_BUCKET }}
+          NEPTUNE_API_KEY: ${{ secrets.NEPTUNE_API_KEY }}
+        run: |
+          echo '${{ secrets.GOOGLE_CLOUD_KEY_JSON }}' > /tmp/credentials.json
+          docker run --rm \
+            -e GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT \
+            -e GOOGLE_CLOUD_BUCKET=$GOOGLE_CLOUD_BUCKET \
+            -e NEPTUNE_API_KEY=$NEPTUNE_API_KEY \
+            -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/credentials.json \
+            -v /tmp/credentials.json:/tmp/credentials.json \
+            gcp_model_train:latest
