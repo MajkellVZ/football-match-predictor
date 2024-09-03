@@ -27,9 +27,17 @@ jobs:
         run: |
           docker build -t football_match_predictor:latest -f feature_pipeline.Dockerfile .
 
+      - name: Set up Google Cloud credentials
+        run: |
+          echo "${{ secrets.GOOGLE_CLOUD_KEY_JSON }}" > ./gcloud-key.json
+          echo "GOOGLE_CLOUD_KEY_JSON secret content written to ./gcloud-key.json"
+          ls -al ./gcloud-key.json
+        env:
+          GOOGLE_CLOUD_KEY_JSON: ${{ secrets.GOOGLE_CLOUD_KEY_JSON }}
+
       - name: Run Feature Pipeline
         env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_CLOUD_KEY_JSON }}
+          GOOGLE_APPLICATION_CREDENTIALS: $HOME/gcloud-key.json
           GOOGLE_CLOUD_PROJECT: ${{ env.GOOGLE_CLOUD_PROJECT }}
           GOOGLE_CLOUD_BUCKET: ${{ env.GOOGLE_CLOUD_BUCKET }}
         run: |
