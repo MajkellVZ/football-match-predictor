@@ -25,6 +25,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: ${{ secrets.GOOGLE_CLOUD_KEY_JSON }}
+
       - name: Build Feature Pipeline Docker image
         run: |
           docker build -t feature_pipeline:latest -f feature_pipeline.Dockerfile .
@@ -32,12 +37,6 @@ jobs:
       - name: Build Experiment Pipeline Docker image
         run: |
           docker build -t experiment_pipeline:latest -f experiment_pipeline.Dockerfile .
-
-      - id: 'auth'
-        name: 'Authenticate to Google Cloud'
-        uses: 'google-github-actions/auth@v1'
-        with:
-          credentials_json: ${{ secrets.GOOGLE_CLOUD_KEY_JSON }}
 
       - name: Run Feature Pipeline
         env:
