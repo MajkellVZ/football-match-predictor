@@ -2,7 +2,7 @@ name: CD Pipeline
 
 on:
   schedule:
-    - cron: '*/2 * * * *'
+    - cron: '0 0 * * 2'
   push:
     branches:
       - main
@@ -37,6 +37,9 @@ jobs:
         run: |
           echo "${{ secrets.GOOGLE_CLOUD_KEY_JSON }}" > $HOME/gcloud-key.json
           export GOOGLE_APPLICATION_CREDENTIALS="$HOME/gcloud-key.json"
+
+      - name: List files in $HOME (for debugging)
+        run: ls -la $HOME
 
       - name: Run Feature Pipeline
         env:
