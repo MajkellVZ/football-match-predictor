@@ -1,5 +1,7 @@
 FROM python:3.11-slim
 
+ENV ENVIRONMENT=production
+
 RUN pip install poetry
 
 WORKDIR /app
