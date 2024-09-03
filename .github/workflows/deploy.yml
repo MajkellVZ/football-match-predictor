@@ -29,8 +29,11 @@ jobs:
 
       - name: Set up Google Cloud credentials
         run: |
+          # Create the gcloud key file from the secret
           echo "${{ secrets.GOOGLE_CLOUD_KEY_JSON }}" > $HOME/gcloud-key.json
           export GOOGLE_APPLICATION_CREDENTIALS="$HOME/gcloud-key.json"
+        env:
+          GOOGLE_CLOUD_KEY_JSON: ${{ secrets.GOOGLE_CLOUD_KEY_JSON }}
 
       - name: Run Feature Pipeline
         env:
