@@ -23,27 +23,41 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Docker image
+      - name: Build Feature Pipeline Docker image
         run: |
-          docker build -t football_match_predictor:latest -f feature_pipeline.Dockerfile .
+          docker build -t feature_pipeline:latest -f feature_pipeline.Dockerfile .
 
       - name: Set up Google Cloud credentials
         run: |
-          echo "${{ secrets.GOOGLE_CLOUD_KEY_JSON }}" > ./gcloud-key.json
-          echo "GOOGLE_CLOUD_KEY_JSON secret content written to ./gcloud-key.json"
-          ls -al ./gcloud-key.json  # List the file to confirm it's there
-        env:
-          GOOGLE_CLOUD_KEY_JSON: ${{ secrets.GOOGLE_CLOUD_KEY_JSON }}
+          echo "${{ secrets.GOOGLE_CLOUD_KEY_JSON }}" > $HOME/gcloud-key.json
+          export GOOGLE_APPLICATION_CREDENTIALS="$HOME/gcloud-key.json"
 
       - name: Run Feature Pipeline
         env:
-          GOOGLE_APPLICATION_CREDENTIALS: /app/gcloud-key.json
+          GOOGLE_APPLICATION_CREDENTIALS: $HOME/gcloud-key.json
           GOOGLE_CLOUD_PROJECT: ${{ env.GOOGLE_CLOUD_PROJECT }}
           GOOGLE_CLOUD_BUCKET: ${{ env.GOOGLE_CLOUD_BUCKET }}
         run: |
           docker run --rm \
-            -v $PWD/gcloud-key.json:/app/gcloud-key.json \
             -e GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS \
             -e GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT \
             -e GOOGLE_CLOUD_BUCKET=$GOOGLE_CLOUD_BUCKET \
-            football_match_predictor:latest
+            feature_pipeline:latest
+
+      - name: Build Experiment Pipeline Docker image
+        run: |
+          docker build -t experiment_pipeline:latest -f experiment_pipeline.Dockerfile .
+
+      - name: Run Experiment Pipeline
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: $HOME/gcloud-key.json
+          GOOGLE_CLOUD_PROJECT: ${{ env.GOOGLE_CLOUD_PROJECT }}
+          GOOGLE_CLOUD_BUCKET: ${{ env.GOOGLE_CLOUD_BUCKET }}
+        run: |
+          docker run --rm \
+            -e GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS \
+            -e GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT \
+            -e GOOGLE_CLOUD_BUCKET=$GOOGLE_CLOUD_BUCKET \
+            experiment_pipeline:latest
+          
+        
