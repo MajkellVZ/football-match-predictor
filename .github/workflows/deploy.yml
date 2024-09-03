@@ -29,16 +29,20 @@ jobs:
 
       - name: Set up Google Cloud credentials
         run: |
-          echo "${{ secrets.GOOGLE_CLOUD_KEY_JSON }}" > $HOME/gcloud-key.json
-          export GOOGLE_APPLICATION_CREDENTIALS="$HOME/gcloud-key.json"
+          echo "${{ secrets.GOOGLE_CLOUD_KEY_JSON }}" > ./gcloud-key.json
+          echo "GOOGLE_CLOUD_KEY_JSON secret content written to ./gcloud-key.json"
+          ls -al ./gcloud-key.json  # List the file to confirm it's there
+        env:
+          GOOGLE_CLOUD_KEY_JSON: ${{ secrets.GOOGLE_CLOUD_KEY_JSON }}
 
       - name: Run Feature Pipeline
         env:
-          GOOGLE_APPLICATION_CREDENTIALS: $HOME/gcloud-key.json
+          GOOGLE_APPLICATION_CREDENTIALS: /app/gcloud-key.json
           GOOGLE_CLOUD_PROJECT: ${{ env.GOOGLE_CLOUD_PROJECT }}
           GOOGLE_CLOUD_BUCKET: ${{ env.GOOGLE_CLOUD_BUCKET }}
         run: |
           docker run --rm \
+            -v $PWD/gcloud-key.json:/app/gcloud-key.json \
             -e GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS \
             -e GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT \
             -e GOOGLE_CLOUD_BUCKET=$GOOGLE_CLOUD_BUCKET \
