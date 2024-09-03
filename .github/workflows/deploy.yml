@@ -33,15 +33,11 @@ jobs:
         run: |
           docker build -t experiment_pipeline:latest -f experiment_pipeline.Dockerfile .
 
-      - name: Set up Google Cloud credentials
-        run: |
-          # Save the Google Cloud JSON key to a file
-          echo "${{ secrets.GOOGLE_CLOUD_KEY_JSON }}" > $HOME/gcloud-key.json
-          # Set permissions for the key file
-          chmod 600 $HOME/gcloud-key.json
-
-      - name: List files in $HOME (for debugging)
-        run: ls -la $HOME
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: ${{ secrets.GOOGLE_CLOUD_KEY_JSON }}
 
       - name: Run Feature Pipeline
         env:
@@ -49,8 +45,6 @@ jobs:
           GOOGLE_CLOUD_BUCKET: ${{ env.GOOGLE_CLOUD_BUCKET }}
         run: |
           docker run --rm \
-            -v $HOME/gcloud-key.json:/root/gcloud-key.json:ro \
-            -e GOOGLE_APPLICATION_CREDENTIALS=/root/gcloud-key.json \
             -e GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT \
             -e GOOGLE_CLOUD_BUCKET=$GOOGLE_CLOUD_BUCKET \
             feature_pipeline:latest      
