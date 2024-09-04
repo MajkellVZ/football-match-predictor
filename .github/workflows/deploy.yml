@@ -28,7 +28,7 @@ jobs:
 #      - name: Set up Google Cloud SDK
 #        uses: google-github-actions/setup-gcloud@v1
 #        with:
-#          project_id: ${{ env.GOOGLE_CLOUD_PROJECT }}
+#          project_id: ${{ vars.GOOGLE_CLOUD_PROJECT }}
 #
 #      - name: 'Authenticate to Google Cloud'
 #        uses: 'google-github-actions/auth@v1'
@@ -45,7 +45,7 @@ jobs:
 #
 #      - name: Run Feature Pipeline
 #        env:
-#          GOOGLE_CLOUD_PROJECT: ${{ env.GOOGLE_CLOUD_PROJECT }}
+#          GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT }}
 #          GOOGLE_CLOUD_BUCKET: ${{ vars.GOOGLE_CLOUD_BUCKET }}
 #        run: |
 #          echo '${{ secrets.GOOGLE_CLOUD_KEY_JSON }}' > /tmp/credentials.json
@@ -58,7 +58,7 @@ jobs:
 
 #      - name: Push Experiment to Artifact Repository
 #        env:
-#          GOOGLE_CLOUD_PROJECT: ${{ env.GOOGLE_CLOUD_PROJECT }}
+#          GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT }}
 #        run: |
 #          echo '${{ secrets.GOOGLE_CLOUD_KEY_JSON }}' > /tmp/credentials.json
 #          gcloud auth activate-service-account --key-file=/tmp/credentials.json
@@ -71,7 +71,7 @@ jobs:
 
 #      - name: Push Model Training to Artifact Repository
 #        env:
-#          GOOGLE_CLOUD_PROJECT: ${{ env.GOOGLE_CLOUD_PROJECT }}
+#          GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT }}
 #        run: |
 #          echo '${{ secrets.GOOGLE_CLOUD_KEY_JSON }}' > /tmp/credentials.json
 #          gcloud auth activate-service-account --key-file=/tmp/credentials.json
@@ -96,7 +96,7 @@ jobs:
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
         with:
-          project_id: ${{ env.GOOGLE_CLOUD_PROJECT }}
+          project_id: ${{ vars.GOOGLE_CLOUD_PROJECT }}
 
       - name: Build GCP Experiment Run Docker image
         run: |
@@ -104,7 +104,7 @@ jobs:
 
       - name: Run Feature Pipeline
         env:
-          GOOGLE_CLOUD_PROJECT: ${{ env.GOOGLE_CLOUD_PROJECT }}
+          GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT }}
           GOOGLE_CLOUD_BUCKET: ${{ vars.GOOGLE_CLOUD_BUCKET }}
           NEPTUNE_API_KEY: ${{ secrets.NEPTUNE_API_KEY }}
         run: |
@@ -132,4 +132,4 @@ jobs:
         env:
           GOOGLE_CLOUD_BUCKET: ${{ secrets.GOOGLE_CLOUD_BUCKET }}
           NEPTUNE_API_KEY: ${{ secrets.NEPTUNE_API_KEY }}
-          GOOGLE_CLOUD_PROJECT: ${{ env.GOOGLE_CLOUD_PROJECT }}
+          GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT }}
