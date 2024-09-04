@@ -44,7 +44,7 @@ jobs:
           GOOGLE_CLOUD_BUCKET: ${{ env.GOOGLE_CLOUD_BUCKET }}
           GOOGLE_APPLICATION_CREDENTIALS: '/tmp/credentials.json'
         run: |
-          echo '${{ secrets.GOOGLE_CLOUD_KEY_JSON }}' | base64 -d > /tmp/credentials.json
+          echo '${{ secrets.GOOGLE_CLOUD_KEY_JSON }}' > /tmp/credentials.json
           docker run --rm \
             -e GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT \
             -e GOOGLE_CLOUD_BUCKET=$GOOGLE_CLOUD_BUCKET \
@@ -57,7 +57,7 @@ jobs:
           GOOGLE_CLOUD_PROJECT: ${{ env.GOOGLE_CLOUD_PROJECT }}
           GOOGLE_CLOUD_BUCKET: ${{ env.GOOGLE_CLOUD_BUCKET }}
         run: |
-          echo '${{ secrets.GOOGLE_CLOUD_KEY_JSON }}' | base64 -d > /tmp/credentials.json
+          echo '${{ secrets.GOOGLE_CLOUD_KEY_JSON }}' > /tmp/credentials.json
           docker run --rm \
             -e GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS \
             -e GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT \
