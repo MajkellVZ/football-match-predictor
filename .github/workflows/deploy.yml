@@ -43,18 +43,9 @@ jobs:
         run: |
           docker build -t experiment_pipeline:latest -f experiment_pipeline.Dockerfile .
 
-      - name: Run Feature Pipeline
-        env:
-          GOOGLE_CLOUD_PROJECT: ${{ env.GOOGLE_CLOUD_PROJECT }}
-          GOOGLE_CLOUD_BUCKET: ${{ vars.GOOGLE_CLOUD_BUCKET }}
+      - name: Build Model Training Pipeline Docker image
         run: |
-          echo '${{ secrets.GOOGLE_CLOUD_KEY_JSON }}' > /tmp/credentials.json
-          docker run --rm \
-            -e GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT \
-            -e GOOGLE_CLOUD_BUCKET=$GOOGLE_CLOUD_BUCKET \
-            -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/credentials.json \
-            -v /tmp/credentials.json:/tmp/credentials.json \
-            feature_pipeline:latest  
+          docker build -t training_pipeline:latest -f training_pipeline.Dockerfile .
 
       - name: Push Experiment to Artifact Repository
         env:
@@ -69,12 +60,42 @@ jobs:
           -f ./experiment_pipeline.Dockerfile ./
           docker push europe-west4-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/experiment-repo/experiment_pipeline:latest
 
+      - name: Push Model Training to Artifact Repository
+        env:
+          GOOGLE_CLOUD_PROJECT: ${{ env.GOOGLE_CLOUD_PROJECT }}
+        run: |
+          echo '${{ secrets.GOOGLE_CLOUD_KEY_JSON }}' > /tmp/credentials.json
+          gcloud auth activate-service-account --key-file=/tmp/credentials.json
+          gcloud config set project $GOOGLE_CLOUD_PROJECT
+          gcloud auth configure-docker europe-west4-docker.pkg.dev
+          
+          docker build -t europe-west4-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/model-repo/training_pipeline:latest \
+          -f ./experiment_pipeline.Dockerfile ./
+          docker push europe-west4-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/model-repo/training_pipeline:latest
+
       - name: Cleanup Credentials
         if: always()
         run: rm -f /tmp/credentials.json
 
-  run-vertex-ai-job:
+  run-feature-pipeline:
     needs: build-and-deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Feature Pipeline
+        env:
+          GOOGLE_CLOUD_PROJECT: ${{ env.GOOGLE_CLOUD_PROJECT }}
+          GOOGLE_CLOUD_BUCKET: ${{ vars.GOOGLE_CLOUD_BUCKET }}
+        run: |
+          echo '${{ secrets.GOOGLE_CLOUD_KEY_JSON }}' > /tmp/credentials.json
+          docker run --rm \
+            -e GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT \
+            -e GOOGLE_CLOUD_BUCKET=$GOOGLE_CLOUD_BUCKET \
+            -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/credentials.json \
+            -v /tmp/credentials.json:/tmp/credentials.json \
+            feature_pipeline:latest 
+
+  run-experiment-job:
+    needs: run-feature-pipeline
     runs-on: ubuntu-latest
     steps:
       - name: Set up Google Cloud SDK
@@ -82,16 +103,29 @@ jobs:
         with:
           project_id: ${{ env.GOOGLE_CLOUD_PROJECT }}
 
-      - name: List files for debugging
-        run: |
-          cd ${{ github.workspace }}
-          pwd  # Print the current directory
-          ls -R
-
       - name: Run Experiment Vertex AI Job
         run: |
           cd ${{ github.workspace }}
           python3 football_match_predictor/experiments/gcp_experiment.py
+        env:
+          GOOGLE_CLOUD_BUCKET: ${{ secrets.GOOGLE_CLOUD_BUCKET }}
+          NEPTUNE_API_KEY: ${{ secrets.NEPTUNE_API_KEY }}
+          GOOGLE_CLOUD_PROJECT: ${{ env.GOOGLE_CLOUD_PROJECT }}
+          GOOGLE_CLOUD_REGION: ${{ env.GOOGLE_CLOUD_REGION }}
+
+  run-model-training-job:
+    needs: run-experiment-job
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ env.GOOGLE_CLOUD_PROJECT }}
+
+      - name: Run Experiment Vertex AI Job
+        run: |
+          cd ${{ github.workspace }}
+          python3 football_match_predictor/experiments/gcp_model_train.py
         env:
           GOOGLE_CLOUD_BUCKET: ${{ secrets.GOOGLE_CLOUD_BUCKET }}
           NEPTUNE_API_KEY: ${{ secrets.NEPTUNE_API_KEY }}
