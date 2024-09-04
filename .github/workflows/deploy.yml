@@ -42,14 +42,14 @@ jobs:
         env:
           GOOGLE_CLOUD_PROJECT: ${{ env.GOOGLE_CLOUD_PROJECT }}
           GOOGLE_CLOUD_BUCKET: ${{ env.GOOGLE_CLOUD_BUCKET }}
-          GOOGLE_APPLICATION_CREDENTIALS: '/tmp/credentials.json'
         run: |
           echo '${{ secrets.GOOGLE_CLOUD_KEY_JSON }}' > /tmp/credentials.json
           ls -l /tmp/credentials.json
           docker run --rm \
             -e GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT \
             -e GOOGLE_CLOUD_BUCKET=$GOOGLE_CLOUD_BUCKET \
-            -e GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS \
+            -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/credentials.json \
+            -v /tmp/credentials.json:/tmp/credentials.json \
             feature_pipeline:latest      
 
       - name: Run Experiment Pipeline
@@ -63,6 +63,7 @@ jobs:
             -e GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS \
             -e GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT \
             -e GOOGLE_CLOUD_BUCKET=$GOOGLE_CLOUD_BUCKET \
+            -v /tmp/credentials.json:/tmp/credentials.json \
             experiment_pipeline:latest
-          
-        
+
+
