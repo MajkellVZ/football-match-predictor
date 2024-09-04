@@ -49,7 +49,15 @@ jobs:
             -e GOOGLE_CLOUD_BUCKET=$GOOGLE_CLOUD_BUCKET \
             -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/credentials.json \
             -v /tmp/credentials.json:/tmp/credentials.json \
-            feature_pipeline:latest      
+            feature_pipeline:latest  
+
+      - name: Push Experiment to Artifact Repository
+        env:
+          GOOGLE_CLOUD_PROJECT: ${{ env.GOOGLE_CLOUD_PROJECT }}
+        run: |
+          docker build -t europe-west4-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/experiment-repo/experiment_pipeline:latest \
+          -f ./experiment_pipeline.Dockerfile ./
+          docker push europe-west4-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/experiment-repo/experiment_pipeline:latest
 
       - name: Run Experiment Pipeline
         env:
