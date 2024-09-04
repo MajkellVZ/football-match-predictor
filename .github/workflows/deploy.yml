@@ -38,11 +38,6 @@ jobs:
         run: |
           docker build -t experiment_pipeline:latest -f experiment_pipeline.Dockerfile .
 
-      - name: Debug Environment Variables
-        run: |
-          echo "GOOGLE_CLOUD_PROJECT: $GOOGLE_CLOUD_PROJECT"
-          echo "GOOGLE_CLOUD_BUCKET: $GOOGLE_CLOUD_BUCKET"
-
       - name: Run Feature Pipeline
         env:
           GOOGLE_CLOUD_PROJECT: ${{ env.GOOGLE_CLOUD_PROJECT }}
@@ -69,5 +64,9 @@ jobs:
             -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/credentials.json \
             -v /tmp/credentials.json:/tmp/credentials.json \
             experiment_pipeline:latest   
+
+      - name: Cleanup Credentials
+        if: always()
+        run: rm -f /tmp/credentials.json
 
 
