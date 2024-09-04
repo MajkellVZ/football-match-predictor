@@ -59,7 +59,7 @@ jobs:
           gcloud auth activate-service-account --key-file=/tmp/credentials.json
           gcloud config set project $GOOGLE_CLOUD_PROJECT
           gcloud auth configure-docker europe-west4-docker.pkg.dev
-    
+          
           docker build -t europe-west4-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/experiment-repo/experiment_pipeline:latest \
           -f ./experiment_pipeline.Dockerfile ./
           docker push europe-west4-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/experiment-repo/experiment_pipeline:latest
