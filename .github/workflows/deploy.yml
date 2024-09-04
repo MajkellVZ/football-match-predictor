@@ -38,13 +38,17 @@ jobs:
         run: |
           docker build -t experiment_pipeline:latest -f experiment_pipeline.Dockerfile .
 
+      - name: Debug Environment Variables
+        run: |
+          echo "GOOGLE_CLOUD_PROJECT: $GOOGLE_CLOUD_PROJECT"
+          echo "GOOGLE_CLOUD_BUCKET: $GOOGLE_CLOUD_BUCKET"
+
       - name: Run Feature Pipeline
         env:
           GOOGLE_CLOUD_PROJECT: ${{ env.GOOGLE_CLOUD_PROJECT }}
           GOOGLE_CLOUD_BUCKET: ${{ env.GOOGLE_CLOUD_BUCKET }}
         run: |
           echo '${{ secrets.GOOGLE_CLOUD_KEY_JSON }}' > /tmp/credentials.json
-          ls -l /tmp/credentials.json
           docker run --rm \
             -e GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT \
             -e GOOGLE_CLOUD_BUCKET=$GOOGLE_CLOUD_BUCKET \
@@ -60,10 +64,10 @@ jobs:
         run: |
           echo '${{ secrets.GOOGLE_CLOUD_KEY_JSON }}' > /tmp/credentials.json
           docker run --rm \
-            -e GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS \
             -e GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT \
             -e GOOGLE_CLOUD_BUCKET=$GOOGLE_CLOUD_BUCKET \
+            -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/credentials.json \
             -v /tmp/credentials.json:/tmp/credentials.json \
-            experiment_pipeline:latest
+            experiment_pipeline:latest   
 
 
