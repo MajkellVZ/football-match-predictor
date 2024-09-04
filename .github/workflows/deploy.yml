@@ -75,7 +75,7 @@ jobs:
         run: rm -f /tmp/credentials.json
 
   run-vertex-ai-job:
-    needs: build-and-push
+    needs: build-and-deploy
     runs-on: ubuntu-latest
     steps:
       - name: Set up Google Cloud SDK
