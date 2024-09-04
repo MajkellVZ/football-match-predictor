@@ -92,33 +92,30 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-      - name: Install dependencies
-        run: |
-          poetry install
 
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
         with:
           project_id: ${{ env.GOOGLE_CLOUD_PROJECT }}
 
-      - name: Run Experiment Vertex AI Job
+      - name: Build GCP Experiment Run Docker image
+        run: |
+          docker build -t gcp_experiment_run:latest -f gcp_experiment_run.Dockerfile .
+
+      - name: Run Feature Pipeline
         env:
+          GOOGLE_CLOUD_PROJECT: ${{ env.GOOGLE_CLOUD_PROJECT }}
           GOOGLE_CLOUD_BUCKET: ${{ vars.GOOGLE_CLOUD_BUCKET }}
           NEPTUNE_API_KEY: ${{ secrets.NEPTUNE_API_KEY }}
-          GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT }}
         run: |
           echo '${{ secrets.GOOGLE_CLOUD_KEY_JSON }}' > /tmp/credentials.json
-          PYTHONPATH=$PYTHONPATH:$(pwd) poetry run python3 football_match_predictor/experiments/gcp_experiment.py
+          docker run --rm \
+            -e GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT \
+            -e GOOGLE_CLOUD_BUCKET=$GOOGLE_CLOUD_BUCKET \
+            -e NEPTUNE_API_KEY=$NEPTUNE_API_KEY \
+            -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/credentials.json \
+            -v /tmp/credentials.json:/tmp/credentials.json \
+            gcp_experiment_run:latest
 
   run-model-training-job:
     needs: run-experiment-job
