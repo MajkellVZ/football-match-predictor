@@ -113,7 +113,7 @@ jobs:
 
       - name: Run Experiment Vertex AI Job
         run: |
-          poetry run python3 football_match_predictor/experiments/gcp_experiment.py
+          PYTHONPATH=$PYTHONPATH:$(pwd) poetry run python3 football_match_predictor/experiments/gcp_experiment.py
         env:
           GOOGLE_CLOUD_BUCKET: ${{ secrets.GOOGLE_CLOUD_BUCKET }}
           NEPTUNE_API_KEY: ${{ secrets.NEPTUNE_API_KEY }}
