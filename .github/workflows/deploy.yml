@@ -115,9 +115,9 @@ jobs:
         run: |
           PYTHONPATH=$PYTHONPATH:$(pwd) poetry run python3 football_match_predictor/experiments/gcp_experiment.py
         env:
-          GOOGLE_CLOUD_BUCKET: ${{ secrets.GOOGLE_CLOUD_BUCKET }}
+          GOOGLE_CLOUD_BUCKET: ${{ vars.GOOGLE_CLOUD_BUCKET }}
           NEPTUNE_API_KEY: ${{ secrets.NEPTUNE_API_KEY }}
-          GOOGLE_CLOUD_PROJECT: ${{ env.GOOGLE_CLOUD_PROJECT }}
+          GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT }}
 
   run-model-training-job:
     needs: run-experiment-job
