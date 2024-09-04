@@ -11,4 +11,4 @@ COPY football_match_predictor/config ./football_match_predictor/config
 COPY football_match_predictor/experiments ./football_match_predictor/experiments
 COPY football_match_predictor/util ./football_match_predictor/util
 
-ENTRYPOINT ["poetry", "run", "python", "-m", "football_match_predictor.experiments.cross_validation"]
+ENTRYPOINT ["poetry", "run", "python", "-m", "football_match_predictor.experiments.gcp_experiment"]

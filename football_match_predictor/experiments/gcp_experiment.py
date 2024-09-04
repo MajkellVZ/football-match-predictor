@@ -20,11 +20,19 @@ def main():
 			staging_bucket=f'gs://{bucket_name}'
 		)
 
-		job = aiplatform.CustomJob.from_local_script(
+		job = aiplatform.CustomJob(
 			display_name='experiment-runner',
-			script_path='cross_validation.py',
-			machine_type='n1-standard-4',
-			container_uri=f'{region}-docker.pkg.dev/{project_id}/experiment-repo/experiment_pipeline:latest',
+			worker_pool_specs=[
+				{
+					"machine_spec": {
+						"machine_type": 'n1-standard-4',
+					},
+					"replica_count": 1,
+					"container_spec": {
+						"image_uri": f'{region}-docker.pkg.dev/{project_id}/experiment-repo/experiment_pipeline:latest'
+					},
+				}
+			]
 		)
 
 		job.run(sync=True)
