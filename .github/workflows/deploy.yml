@@ -54,17 +54,22 @@ jobs:
       - name: Push Experiment to Artifact Repository
         env:
           GOOGLE_CLOUD_PROJECT: ${{ env.GOOGLE_CLOUD_PROJECT }}
+          NEPTUNE_API_KEY: ${{ secrets.NEPTUNE_API_KEY }}
         run: |
           echo '${{ secrets.GOOGLE_CLOUD_KEY_JSON }}' > /tmp/credentials.json
           gcloud auth activate-service-account --key-file=/tmp/credentials.json
           gcloud config set project $GOOGLE_CLOUD_PROJECT
           gcloud auth configure-docker europe-west4-docker.pkg.dev
           
-          docker build -t europe-west4-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/experiment-repo/experiment_pipeline:latest \
+          docker build --build-arg NEPTUNE_API_KEY=$NEPTUNE_API_KEY -t europe-west4-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/experiment-repo/experiment_pipeline:latest \
           -f ./experiment_pipeline.Dockerfile ./
           docker push europe-west4-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/experiment-repo/experiment_pipeline:latest
 
-      - name: Run Experiment Pipeline
+      - name: Build GCP Experiment Run
+        run: |
+          docker build -t gcp_experiment_run:latest -f gcp_experiment_run.Dockerfile .
+
+      - name: Run GCP Experiment Run
         env:
           GOOGLE_APPLICATION_CREDENTIALS: '/tmp/credentials.json'
           GOOGLE_CLOUD_PROJECT: ${{ env.GOOGLE_CLOUD_PROJECT }}
@@ -78,7 +83,7 @@ jobs:
             -e NEPTUNE_API_KEY=$NEPTUNE_API_KEY \
             -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/credentials.json \
             -v /tmp/credentials.json:/tmp/credentials.json \
-            experiment_pipeline:latest   
+            gcp_experiment_run:latest   
 
       - name: Cleanup Credentials
         if: always()
