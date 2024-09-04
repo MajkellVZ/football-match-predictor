@@ -45,6 +45,7 @@ jobs:
           GOOGLE_APPLICATION_CREDENTIALS: '/tmp/credentials.json'
         run: |
           echo '${{ secrets.GOOGLE_CLOUD_KEY_JSON }}' > /tmp/credentials.json
+          ls -l /tmp/credentials.json
           docker run --rm \
             -e GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT \
             -e GOOGLE_CLOUD_BUCKET=$GOOGLE_CLOUD_BUCKET \
