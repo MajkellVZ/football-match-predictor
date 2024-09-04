@@ -29,7 +29,11 @@ def main():
 					},
 					"replica_count": 1,
 					"container_spec": {
-						"image_uri": f'{region}-docker.pkg.dev/{project_id}/experiment-repo/experiment_pipeline:latest'
+						"image_uri": f'{region}-docker.pkg.dev/{project_id}/experiment-repo/experiment_pipeline:latest',
+						"env": [
+							{"name": "GOOGLE_CLOUD_BUCKET", "value": os.getenv("GOOGLE_CLOUD_BUCKET")},
+							{"name": "NEPTUNE_API_KEY", "value": os.getenv("NEPTUNE_API_KEY")},
+						],
 					},
 				}
 			]

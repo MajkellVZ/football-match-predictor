@@ -1,7 +1,5 @@
 FROM python:3.11-slim
 
-ARG NEPTUNE_API_KEY
-
 RUN pip install poetry
 
 WORKDIR /app
