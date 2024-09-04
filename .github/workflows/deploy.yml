@@ -84,11 +84,12 @@ jobs:
 
       - name: List files for debugging
         run: |
+          cd ${{ github.workspace }}
           ls -R
 
       - name: Run Experiment Vertex AI Job
         run: |
-          python3 football_match_predictor/experiments/gcp_experiment.py
+          python3 ./football_match_predictor/experiments/gcp_experiment.py
         env:
           GOOGLE_CLOUD_BUCKET: ${{ secrets.GOOGLE_CLOUD_BUCKET }}
           NEPTUNE_API_KEY: ${{ secrets.NEPTUNE_API_KEY }}
