@@ -56,11 +56,13 @@ jobs:
           GOOGLE_APPLICATION_CREDENTIALS: '/tmp/credentials.json'
           GOOGLE_CLOUD_PROJECT: ${{ env.GOOGLE_CLOUD_PROJECT }}
           GOOGLE_CLOUD_BUCKET: ${{ vars.GOOGLE_CLOUD_BUCKET }}
+          NEPTUNE_API_KEY: ${{ secrets.NEPTUNE_API_KEY }}
         run: |
           echo '${{ secrets.GOOGLE_CLOUD_KEY_JSON }}' > /tmp/credentials.json
           docker run --rm \
             -e GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT \
             -e GOOGLE_CLOUD_BUCKET=$GOOGLE_CLOUD_BUCKET \
+            -e NEPTUNE_API_KEY=$NEPTUNE_API_KEY \
             -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/credentials.json \
             -v /tmp/credentials.json:/tmp/credentials.json \
             experiment_pipeline:latest   
