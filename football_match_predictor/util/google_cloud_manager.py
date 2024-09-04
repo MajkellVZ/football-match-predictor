@@ -40,7 +40,11 @@ def load_data_from_gcs(blob_name):
 
 		data = blob.download_as_bytes()
 		with io.BytesIO(data) as file_obj:
-			data = pickle.load(file_obj)
+			try:
+				data = pickle.load(file_obj)
+				print("Data loaded successfully")
+			except Exception as e:
+				print(f"An error occurred: {e}")
 
 	logger.info(f"Loaded {blob_name}.")
 
