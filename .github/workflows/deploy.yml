@@ -79,7 +79,7 @@ jobs:
           gcloud auth configure-docker europe-west4-docker.pkg.dev
 
           docker build -t europe-west4-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/model-repo/training_pipeline:latest \
-          -f ./experiment_pipeline.Dockerfile ./
+          -f ./training_pipeline.Dockerfile ./
           docker push europe-west4-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/model-repo/training_pipeline:latest
 
       - name: Cleanup Credentials
