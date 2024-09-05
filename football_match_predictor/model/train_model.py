@@ -1,6 +1,5 @@
 import logging
 import os
-import pickle
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import KNeighborsClassifier
@@ -78,13 +77,7 @@ def main():
 
 	logger.info("Storing model")
 	model_path = 'models/model.pickle'
-	if environment == 'production':
-		with open(f'/gcs/football-results/{model_path}', 'wb') as f:
-			pickle.dump(model, f)
-	else:
-		with open(model_path, 'wb') as f:
-			pickle.dump(model, f)
-		upload_to_gcs(model_path, model_path)
+	upload_to_gcs(model, model_path, model_path)
 
 
 if __name__ == "__main__":

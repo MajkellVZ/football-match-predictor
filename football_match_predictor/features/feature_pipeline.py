@@ -1,6 +1,4 @@
 import logging
-import os
-import pickle
 
 from football_match_predictor.features.data_provider import (load_football_data, preprocess_data,
                                                              define_features_and_target)
@@ -10,8 +8,6 @@ from football_match_predictor.util.logger import Logger
 from football_match_predictor.util.parameter_retriever import get_parameters
 
 logger = Logger(name="feature_pipeline", level=logging.DEBUG)
-
-environment = os.getenv('ENVIRONMENT')
 
 
 def main(start_year: int, end_year: int):
