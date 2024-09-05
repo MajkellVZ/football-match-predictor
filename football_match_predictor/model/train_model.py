@@ -77,7 +77,7 @@ def main():
 
 	logger.info("Storing model")
 	model_path = 'models/model.pickle'
-	upload_to_gcs(model, model_path, model_path)
+	upload_to_gcs(model, f'/gcs/football-results/{model_path}', model_path)
 
 
 if __name__ == "__main__":
