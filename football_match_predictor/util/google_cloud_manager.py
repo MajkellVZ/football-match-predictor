@@ -16,7 +16,7 @@ project_id = os.getenv('GOOGLE_CLOUD_PROJECT')
 
 
 def upload_to_gcs(data: pd.DataFrame | pd.Series, source_file_path: str, destination_blob_name: str):
-	if environment != 'production':
+	if environment == 'production':
 		with open(source_file_path, 'wb') as f:
 			pickle.dump(data, f)
 	else:

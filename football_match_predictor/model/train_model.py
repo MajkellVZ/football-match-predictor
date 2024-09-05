@@ -1,6 +1,5 @@
 import logging
 import os
-import pickle
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import KNeighborsClassifier
@@ -24,7 +23,7 @@ def load_versioned_data(start_year: int, end_year: int):
 	target_blob_name = f'{versioned_dir}target.pickle'
 
 	X = load_data_from_gcs(features_blob_name)
-	y = load_data_from_gcs(target_blob_name).ravel()
+	y = load_data_from_gcs(target_blob_name)
 
 	return X, y
 
@@ -78,13 +77,7 @@ def main():
 
 	logger.info("Storing model")
 	model_path = 'models/model.pickle'
-	if environment == 'production':
-		with open(f'/gcs/football-results/{model_path}', 'wb') as f:
-			pickle.dump(model, f)
-	else:
-		with open(model_path, 'wb') as f:
-			pickle.dump(model, f)
-		upload_to_gcs(model_path, model_path)
+	upload_to_gcs(model, f'/gcs/football-results/{model_path}', model_path)
 
 
 if __name__ == "__main__":
