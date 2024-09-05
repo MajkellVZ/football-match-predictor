@@ -23,7 +23,7 @@ def load_versioned_data(start_year: int, end_year: int):
 	target_blob_name = f'{versioned_dir}target.pickle'
 
 	X = load_data_from_gcs(features_blob_name)
-	y = load_data_from_gcs(target_blob_name).ravel()
+	y = load_data_from_gcs(target_blob_name)
 
 	return X, y
 

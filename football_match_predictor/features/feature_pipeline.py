@@ -18,8 +18,10 @@ def main(start_year: int, end_year: int):
 	data_hash = generate_hash(start_year, end_year)
 	versioned_dir = f'data/{data_hash}/'
 
-	upload_to_gcs(features, f'{versioned_dir}features.pickle', f'{versioned_dir}features.pickle')
-	upload_to_gcs(target, f'{versioned_dir}target.pickle', f'{versioned_dir}target.pickle')
+	upload_to_gcs(features, f'/gcs/football-results/{versioned_dir}features.pickle',
+	              f'{versioned_dir}features.pickle')
+	upload_to_gcs(target, f'/gcs/football-results/{versioned_dir}target.pickle',
+	              f'{versioned_dir}target.pickle')
 
 
 if __name__ == "__main__":
