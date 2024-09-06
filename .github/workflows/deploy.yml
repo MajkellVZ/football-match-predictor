@@ -53,6 +53,8 @@ jobs:
           docker push europe-west4-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/experiment-repo/experiment_pipeline:latest
           docker build -t europe-west4-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/model-repo/training_pipeline:latest -f training_pipeline.Dockerfile .
           docker push europe-west4-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/model-repo/training_pipeline:latest
+          docker build -t europe-west4-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/model-repo/server_app:latest -f server_app.Dockerfile .
+          docker push europe-west4-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/model-repo/server_app:latest
 
       - name: Cleanup
         run: rm -f /tmp/credentials.json
@@ -62,7 +64,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
       - name: Build and Run Experiment Job
         env:
@@ -82,7 +84,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
       - name: Build and Run Model Training Pipeline
         env:
@@ -96,3 +98,35 @@ jobs:
             -e NEPTUNE_API_KEY -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/credentials.json \
             -v /tmp/credentials.json:/tmp/credentials.json \
             gcp_model_train:latest
+
+  deploy-server-app:
+    needs: run-model-training-job
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ vars.GOOGLE_CLOUD_PROJECT }}
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GOOGLE_CLOUD_KEY_JSON }}
+
+      - name: Deploy the server app
+        env:
+          GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT }}
+          GOOGLE_CLOUD_BUCKET: ${{ vars.GOOGLE_CLOUD_BUCKET }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_CLOUD_KEY_JSON }}
+        run: |
+          gcloud config set project $GOOGLE_CLOUD_PROJECT
+          gcloud run deploy server-app \
+          --image europe-west4-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/model-repo/server_app:latest \
+          --platform managed \
+          --region europe-west4 \
+          --allow-unauthenticated \
+          --set-env-vars GOOGLE_CLOUD_BUCKET=$GOOGLE_CLOUD_BUCKET
+
