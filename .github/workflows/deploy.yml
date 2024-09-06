@@ -1,11 +1,14 @@
 name: CD Pipeline
 
 on:
-  schedule:
-    - cron: '0 0 * * 2'
-  push:
-    branches:
-      - main
+  [push, pull_request]
+#  schedule:
+#    - cron: '0 0 * * 2'
+#  push:
+#    branches:
+#      - main
+#  pull_request:
+#    null
 
 jobs:
   build-and-deploy:
