@@ -16,6 +16,7 @@ google-cloud-storage = "^2.18.2"
 flask = "^3.0.3"
 google-cloud-aiplatform = "^1.63.0"
 gunicorn = "^23.0.0"
+flask-cors = "^5.0.0"
 
 
 [build-system]
