@@ -2,7 +2,7 @@ name: CD Pipeline
 
 on:
   schedule:
-    - cron: '0 0 * * 2'
+    - cron: '0 7 * * 2'
   push:
     branches:
       - main
@@ -45,16 +45,6 @@ jobs:
             -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/credentials.json \
             -v /tmp/credentials.json:/tmp/credentials.json \
             feature_pipeline:latest
-
-      - name: Push Docker Images to Google Artifact Registry
-        run: |
-          gcloud auth configure-docker europe-west4-docker.pkg.dev
-          docker build -t europe-west4-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/experiment-repo/experiment_pipeline:latest -f experiment_pipeline.Dockerfile .
-          docker push europe-west4-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/experiment-repo/experiment_pipeline:latest
-          docker build -t europe-west4-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/model-repo/training_pipeline:latest -f training_pipeline.Dockerfile .
-          docker push europe-west4-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/model-repo/training_pipeline:latest
-          docker build -t europe-west4-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/model-repo/server_app:latest -f server_app.Dockerfile .
-          docker push europe-west4-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/model-repo/server_app:latest
 
       - name: Cleanup
         run: rm -f /tmp/credentials.json
